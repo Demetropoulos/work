@@ -1,0 +1,25 @@
+## INPUT CONFIGURATION ##
+
+fields:
+  - id: username
+    type: string
+    label: Username
+  - id: password
+    type: string
+    label: Password
+    secret: true
+  - id: server
+    type: string
+    label: Server
+required:
+  - username
+  - password
+  - server
+
+
+## INJECTOR CONFIGURATION ##
+env:
+  ZABBIX_PASSWORD: '{{password}}'
+  ZABBIX_SERVER: '{{server}}'
+  ZABBIX_USERNAME: '{{username}}'
+
