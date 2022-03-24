@@ -1,11 +1,21 @@
+#######################################################
+##                                                   ##
+##    This script will iterate through a file called ##
+##  maclist.csv,looking for switchports connected to ##
+##  MAC Addresses. If the found interface is a Port- ##
+##  Channel, it will also grab the Member Ports.     ##
+##  The show run interface output will also be saved ##
+##  within the appropriate cell, while cleaning up   ##
+##  the output before saving it.                     ##
+##                                                   ##
+#######################################################
+
 import pandas as pd
 import paramiko
 
 # Read csv into a pandas dataframe
 macfile = pd.read_csv('maclist.csv')
 
-# Test print of the csv data frame
-#print(macfile)
 
 ### Function to SSH ###
 # Connects to device via SSH.
@@ -169,3 +179,4 @@ for row_index, row in macfile.iterrows():
    
 # END Of SCRIPT    
 print('END OF SCRIPT')
+
