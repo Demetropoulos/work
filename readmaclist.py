@@ -16,6 +16,12 @@ import paramiko
 # Read csv into a pandas dataframe
 macfile = pd.read_csv('maclist.csv')
 
+# Assign csv row and columns
+c0 = 'MAC'
+c4 = 'Switch-GTWY'
+c5 = 'Port-GTWY'
+c6 = 'Port Configuration'
+c11 = 'Port-Channel Members'
 
 ### Function to SSH ###
 # Connects to device via SSH.
@@ -41,52 +47,24 @@ def nametoip(hostname):
 # Reads 3 lines and cleans anything before the Member Ports,
 # using LACP as the splitter from the output.
 def pocleanup(output):
-    if 'LACP' in output[0]:
-        cleanedup = output[0].split('LACP')
-        cleanpc = cleanedup[1].strip() + '\n' + output[1].strip() + '\n' + output[2].strip()
-    elif 'LACP' in output[1]:
-        cleanedup = output[1].split('LACP')
-        cleanpc = cleanedup[1].strip() + '\n' + output[2].strip()
-    else:
-        cleanedup = output[2].split('LACP')
-        cleanpc = cleanedup[1].strip()
-    return cleanpc
+    lacpcleanup = "".join(output).split('LACP')
+    if len(lacpcleanup) >=2:
+        return "\n".join([line.strip() for line in lacpcleanup[1].splitlines()])
 
 ### Function Cleanup Show Run ###
 # Reads 7 lines and cleans anything before 'interface' on the output.
 # Also removes empty lines.
 def shruncleanup(output):
-    cleandesc = ''
     trimoutput = ''
-    if 'interface' in output[0]:
-        trimoutput = output[:6]
-        for line in trimoutput:
-            cleandesc += line.strip() + '\n'
-    elif 'interface' in output[1]:
-        trimoutput = output[1:6]
-        for line in trimoutput:
-            cleandesc += line.strip() + '\n'
-    elif 'interface' in output[2]:
-        trimoutput = output[2:6]
-        for line in trimoutput:
-            cleandesc += line.strip() + '\n'
-    elif 'interface' in output[3]:
-        trimoutput = output[3:6]
-        for line in trimoutput:
-            cleandesc += line.strip() + '\n'
-    elif 'interface' in output[4]:
-        trimoutput = output[4:6]
-        for line in trimoutput:
-            cleandesc += line.strip() + '\n'
-    elif 'interface' in output[5]:
-        trimoutput = output[5:6]
-        for line in trimoutput:
-            cleandesc += line.strip() + '\n'
-    else:
-        cleanedesc = output[6].strip()
-    cleandesc = cleandesc[:-1]
-    #print(f"{cleandesc}")
-    return cleandesc
+    startkeep = False
+    for line in output:
+        if 'interface' in line:
+            startkeep = True
+        if startkeep:
+            trimoutput += line.strip() + '\n'
+    trimoutput = trimoutput[:-2]
+    #print(f"{trimoutput}")
+    return trimoutput
 
 # Iterate through csv per row. Grab row dataframe, and row_index.
 # Then, paste output of to each cell.
@@ -94,15 +72,11 @@ def shruncleanup(output):
 # Port-channel member ports, if it's a port-channel,
 # and the show run of that interface
 for row_index, row in macfile.iterrows():
-    # Assign csv row and columns
-    c0 = 'MAC'
-    c4 = 'Switch-GTWY'
-    c5 = 'Port-GTWY'
-    c6 = 'Port Configuration'
-    c11 = 'Port-Channel Members'
+
+    #Assign row variables
     devicemac = row[c0]
     swname = row[c4]
- 
+
     print(f"Working on {row_index}, {devicemac}, {swname}...")
 
     # If no MAC Address, skip
@@ -113,7 +87,7 @@ for row_index, row in macfile.iterrows():
     elif pd.isna(swname):
         print(f"skipping {row_index}, no switch...\n")
 
-    # If device MAC Address and switch hostname is present, pull last 2 characters from switch hostname and ssh into the switch
+    # If device MAC Address and switch hostname is present, continue
     else:
 
         # Assign variables to commands
@@ -134,30 +108,28 @@ for row_index, row in macfile.iterrows():
         print(f"Switchport added to csv...")
 
         # Check if port is a port-channel
-        po = 'Po'
-        if po in readport:
+        if 'Po' in readport:
             print(f"This is a port-channel...")
 
             # Add port to show command
             shpc = shportchannel + readport
 
-            # Save last 3 lines of output. This should be enough space to get all the members.
+            # Save last 3 lines of output.
             readmemberports = sshconnect(ip,shpc)[-3:]
             # print(readmemberports)
 
             # Call Function to Cleanup Port-Channel Member Port output, then pasting in correct cell
             macfile.loc[row_index,c11] = pocleanup(readmemberports)
+            print("Port-channel member ports added to csv...")
 
             # Setup show run with port-channel interface
             shrunint = shrun + readport
 
-            # Save last 5 lines of output. This should be enough space to get all the members.
+            # Save last 7 lines of output.
             readshrun = sshconnect(ip,shrunint)[-7:]
 
             # Call Function to Cleanup Show Run, and place in correct cell
             macfile.loc[row_index,c6] = shruncleanup(readshrun)
-
-            # Write output to associated cell for port configuration
             print(f"Port-channel configuration added to csv...")
 
             # Save new dataframe to original file
@@ -170,7 +142,7 @@ for row_index, row in macfile.iterrows():
             shint = shrun + readport
             readshrun = sshconnect(ip,shint)[-7:]
             macfile.loc[row_index,c6] = shruncleanup(readshrun)
-            print(f"Switchport configuration added to csv")
+            print(f"Switchport configuration added to csv...")
             macfile.to_csv('maclist.csv')
             print("SAVED. Moving onto next MAC...\n")
 
@@ -179,4 +151,3 @@ for row_index, row in macfile.iterrows():
    
 # END Of SCRIPT    
 print('END OF SCRIPT')
-
