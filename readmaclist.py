@@ -1,14 +1,12 @@
-#######################################################
-##                                                   ##
-##    This script will iterate through a file called ##
-##  maclist.csv,looking for switchports connected to ##
-##  MAC Addresses. If the found interface is a Port- ##
-##  Channel, it will also grab the Member Ports.     ##
-##  The show run interface output will also be saved ##
-##  within the appropriate cell, while cleaning up   ##
-##  the output before saving it.                     ##
-##                                                   ##
-#######################################################
+################################################################################
+##                                                                            ##
+##    This script will iterate through a file called maclist.csv,looking for  ##
+##  switchports connected to MAC Addresses. If the found interface is a Port- ##
+##  Channel, it will also grab the Member Ports. The show run interface       ##
+##  output will also be saved within the appropriatecell, while cleaning up   ##
+##  the output before saving it.                                              ##
+##                                                                            ##
+################################################################################
 
 import pandas as pd
 import paramiko
@@ -30,7 +28,8 @@ def sshconnect(ip,command):
     with paramiko.SSHClient() as ssh:
         # print("Open SSH.")
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        ssh.connect(ip, port=22, username='awxuser', key_filename='/home/user/.ssh/id_rsa.pub', timeout=3)
+        ssh.connect(ip, port=22, username='awxuser',
+                    key_filename='/home/user/.ssh/id_rsa.pub', timeout=3)
         stdin, stdout, stderr = ssh.exec_command(command)
         # print("Closing SSH.")
         return stdout.readlines()
@@ -83,7 +82,7 @@ for row_index, row in macfile.iterrows():
     if pd.isna(devicemac):
         print(f"skipping {row_index}, no mac...\n")
 
-    # If no switch hostname, skip    
+    # If no switch hostname, skip
     elif pd.isna(swname):
         print(f"skipping {row_index}, no switch...\n")
 
@@ -94,7 +93,7 @@ for row_index, row in macfile.iterrows():
         shmac = 'show mac add add ' + devicemac
         shportchannel = 'show port-channel summary interface '
         shrun = 'show run int '
-       
+
         # Call Hostname to IP Function in order to SSH to a valid IP Address
         ip = nametoip(swname)
         print(f"Now SSHing into {ip}...")
@@ -118,7 +117,8 @@ for row_index, row in macfile.iterrows():
             readmemberports = sshconnect(ip,shpc)[-3:]
             # print(readmemberports)
 
-            # Call Function to Cleanup Port-Channel Member Port output, then pasting in correct cell
+            # Call Function to Cleanup Port-Channel Member Port output,
+            # then pasting in correct cell
             macfile.loc[row_index,c11] = pocleanup(readmemberports)
             print("Port-channel member ports added to csv...")
 
@@ -135,8 +135,9 @@ for row_index, row in macfile.iterrows():
             # Save new dataframe to original file
             macfile.to_csv('maclist.csv')
             print("SAVED. Moving onto next MAC...\n")
-        
-        # If no port-channel, copy the interface and paste it into the associate cell for port configuration
+
+        # If no port-channel, copy the interface and paste it into the
+        # appropriate cell for port configuration
         else:
             print(f"This is not a port-channel...")
             shint = shrun + readport
@@ -148,6 +149,6 @@ for row_index, row in macfile.iterrows():
 
         # Break for test
         # break
-   
-# END Of SCRIPT    
+
+# END Of SCRIPT
 print('END OF SCRIPT')
