@@ -11,9 +11,9 @@ nocommand2 = 'no username awxuser sshkey'
 
 command0 = 'sh int desc | i 1/1'
 idncommand1 = 'username awxuseridn password 0 awxpass role network-admin'
-idncommand2 = 'username awxuseridn sshkey ssh-rsa xxxHASHxxx
+idncommand2 = 'username awxuseridn sshkey ssh-rsa xxxHASHxxx'
 dccommand1 = 'username awxuserdc password 0 awxpass role network-admin'
-dccommand2 = 'username awxuserdc sshkey ssh-rsa xxxHASHxxx
+dccommand2 = 'username awxuserdc sshkey ssh-rsa xxxHASHxxx'
 
 
 # Pulls username and pw from file because I'm lazy
