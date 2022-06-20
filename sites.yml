@@ -1,0 +1,48 @@
+# siteID Structure:
+# DATA CENTERS 1 - 9
+# MAJOR CAMPUSES 10 - 99
+# REMOTE SITES 100+
+
+sites:
+    DC01:
+        siteID: 1
+        siteName: 'Data Center One'
+        siteAddress: '123 Main St., New York, NY'
+        siteSubnet: '10.10.10.'
+        siteRouterA: '10.10.10.1'
+    DC02:
+        siteID: 2
+        siteName: 'Data Center Two'
+        siteAddress: '987 South St., Atlanta, GA'
+        siteSubnet: '10.10.11.'
+        siteRouterA: '10.10.11.1'
+    CoLo01:
+        siteID: 3
+        siteName: 'Data Center CoLocation'
+        siteAddress: '500 Sunshine Dr., Tampa, FL'
+        siteSubnet: '10.10.12.'
+        siteRouterA: '10.10.12.1'
+    Corp:
+        siteID: 10
+        siteName: 'Corporate Office'
+        siteAddress: '501 Boylston St., Boston, MA'
+        siteSubnet: '10.100.0'
+        siteRouterA: '10.100.0.1'
+    Finance:
+        siteID: 11
+        siteName: 'Finance Department'
+        siteAddress: '245 Summer St., Boston, MA'
+        siteSubnet: '10.101.0.'
+        siteRouterA: '10.101.0.1'
+    Engineering:
+        siteID: 12
+        siteName: 'Engineering Team'
+        siteAddress: '1000 W NASA Blvd., Melbourne, FL'
+        siteSubnet: '10.102.0.'
+        siteRouterA: '10.102.0.1'
+    Warehouse:
+        siteID: 13
+        siteName: 'Distribution Center'
+        siteAddress: '700 Sullivan Rd., College Park, GA'
+        siteSubnet: '10.103.0.'
+        siteRouterA: '10.103.0.1'
