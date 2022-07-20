@@ -51,12 +51,12 @@ if siteknown == True:
         print(f"\nThis is the router IP: {ip}\n")
         macoutput = sshconnectdc(ip,shmac)
     else:
-        macoutput = sshconnectidn(ip,shmac)
+        macoutput = sshconnectcampus(ip,shmac)
     
     print(macoutput)
 
 else:
-    print("\nSearching for a MAC Address throughout the IDN?\n",
+    print("\nSearching for a MAC Address throughout the campus?\n",
           "Please provide the MAC Address and sit tight.\n",
           "This might take a few minutes.\n\n")
     mac = input("Please enter the MAC Address (abcd.ef12.3456, or ab-cd-ef-12-34-56, or ab:cd:ef:12:34:56): ")
@@ -68,7 +68,7 @@ else:
             if picksite <= 9:
                 macoutput = sshconnectdc(site['siteRouterA'],shmac)
             else:
-                macoutput = sshconnectidn(site['siteRouterA'],shmac)
+                macoutput = sshconnectcampus(site['siteRouterA'],shmac)
             if mac in macoutput:
                 print(f"MAC is at {site}\n")
             else:
