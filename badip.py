@@ -40,8 +40,8 @@ def append_to_file(file_path, data):
         print("Error writing to file: {}".format(file_path))
 
 # Read IP addresses from a file
-input_file_path = "panexport.lst"
-previous_list_path = "previous.lst"
+input_file_path = "ip.lst"
+log_path = "log.lst"
 sw_output_file_path = "sw.lst"
 mm_output_file_path = "mm.lst"
 jira_output_file_path = "jira.lst"
@@ -54,11 +54,11 @@ except IOError:
     ip_addresses_list = []
 
 try:
-    with open(previous_list_path, 'r') as previous_file:
-        previous_list = [line.strip() for line in previous_file.readlines()]
+    with open(log_path, 'r') as log_file:
+        archive_list = [line.strip() for line in log_file.readlines()]
 except IOError:
-    print("Error reading file: {}".format(previous_list_path))
-    previous_list = []
+    print("Error reading file: {}".format(log_path))
+    archive_list = []
 
 # Process duplicate IPs and remove 'BadIP (never expire)' entries
 unique_ips = remove_duplicates(ip_addresses_list)
@@ -66,11 +66,11 @@ filtered_ips = remove_bad_ip_entries(unique_ips)
 formatted_ips = format_unique_ips(filtered_ips)
 
 # Process duplicate IPs from previous list that have already been migrated
-filtered_panexport_list = remove_ips_from_panexport(formatted_ips, previous_list)
+filtered_panexport_list = remove_ips_from_panexport(formatted_ips, archive_list)
 write_to_file(jira_output_file_path, filtered_panexport_list)
 
 # Write new IP list to previous file to be used on next run
-append_to_file(previous_list_path, filtered_panexport_list)
+append_to_file(log_path, filtered_panexport_list)
 
 # Format SW result and write to file
 sw_result = format_sw_result(filtered_panexport_list)
