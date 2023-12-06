@@ -1,0 +1,16 @@
+from panos import firewall
+from panos import device
+#import sys
+
+#print(sys.path)
+
+host = "10.0.0.1"
+user = "username"
+pw = "password"
+
+fw = firewall.Firewall(host, user, pw)
+element_response = fw.op('show system info')
+xml_str_response = fw.op('show system info', xml=True)
+
+print(element_response)
+print(xml_str_response)
