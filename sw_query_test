@@ -1,0 +1,21 @@
+import requests
+from orionsdk import SwisClient
+from getpass import getpass
+
+npm_server = 'solarwinds.local'
+username = 'user'
+password = getpass("Enter your SolarWinds password: ")
+
+verify = False
+if not verify:
+    from requests.packages.urllib3.exceptions import InsecureRequestWarning
+    requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+
+
+swis = SwisClient(npm_server, username, password, verify=False, port=17778)
+
+print("Query Test:")
+results = swis.query("SELECT TOP 3 NodeID, DisplayName FROM Orion.Nodes")
+
+for row in results['results']:
+    print("{NodeID:<5}: {DisplayName}".format(**row))
