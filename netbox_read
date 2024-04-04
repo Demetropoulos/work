@@ -1,0 +1,102 @@
+import requests
+import json
+import urllib3
+import os
+
+# Suppress InsecureRequestWarning
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+# NetBox API endpoint and authentication token
+NETBOX_URL = "https://netbox.local"
+NETBOX_TOKEN = "API KEY"
+
+def get_sites():
+    headers = {
+        "Authorization": f"Token {NETBOX_TOKEN}",
+        "Content-Type": "application/json"
+    }
+    url = f"{NETBOX_URL}/api/dcim/sites/"
+    response = requests.get(url, headers=headers, verify=False)  # Ignore SSL verification
+    if response.status_code == 200:
+        return response.json()['results']
+    else:
+        print(f"Failed to fetch sites: {response.text}")
+        return None
+
+def get_devices():
+    headers = {
+        "Authorization": f"Token {NETBOX_TOKEN}",
+        "Content-Type": "application/json"
+    }
+    devices_url = f"{NETBOX_URL}/api/dcim/devices/"
+    devices = []
+    next_url = devices_url
+    while next_url:
+        response = requests.get(next_url, headers=headers, verify=False)  # Ignore SSL verification
+        if response.status_code == 200:
+            data = response.json()
+            devices.extend(data['results'])
+            next_url = data['next']
+        else:
+            print(f"Failed to fetch devices: {response.text}")
+            return None
+    return devices
+
+def extract_manufacturer_name(device_type):
+    if device_type and 'manufacturer' in device_type:
+        return device_type['manufacturer']['name']
+    else:
+        return ""
+
+def organize_devices_by_site(sites, devices):
+    devices_by_site = {}
+    for site in sites:
+        site_name = site['name']
+        devices_by_site[site_name] = []
+
+    for device in devices:
+        site_name = device['site']['name']
+        manufacturer_name = extract_manufacturer_name(device.get("device_type", {}))
+		model_name = device.get("device_type", {}).get("model", "")
+        
+        # Exclude devices with specific manufacturer names
+        if manufacturer_name not in ["Generic", "APC", "Cyber Power", "Wyebot"] and "WAP" not in model_name:
+            device_info = {
+                "Device Hostname": device.get("name", ""),
+                "Device Model": model_name,
+                "Device Manufacturer Name": manufacturer_name
+            }
+            devices_by_site[site_name].append(device_info)
+
+    return devices_by_site
+
+
+def write_devices_to_files(devices_by_site):
+    for site_name, devices in devices_by_site.items():
+        filename = f"{site_name}.lst"
+        with open(filename, "w") as file:
+            for device_info in devices:
+                file.write(f"Device Hostname: {device_info['Device Hostname']}\n")
+                file.write(f"Device Model: {device_info['Device Model']}\n")
+                file.write(f"Device Manufacturer Name: {device_info['Device Manufacturer Name']}\n\n")
+        print(f"Device data for {site_name} written to {filename} successfully.")
+
+def main():
+    # Fetch sites and devices
+    sites = get_sites()
+    devices = get_devices()
+
+    # Ensure both sites and devices are fetched successfully
+    if sites and devices:
+        # Organize devices by site
+        devices_by_site = organize_devices_by_site(sites, devices)
+
+        # Write devices to files
+        write_devices_to_files(devices_by_site)
+
+        print("Device data organized and written to files successfully.")
+    else:
+        print("Failed to retrieve data.")
+
+if __name__ == "__main__":
+    main()
