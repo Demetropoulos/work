@@ -1,0 +1,45 @@
+import requests
+from orionsdk import SwisClient
+from getpass import getpass
+
+def get_sites(swis):
+    sites_query = "SELECT NodeID, Location FROM Orion.Nodes GROUP BY NodeID, Location"
+    sites = swis.query(sites_query)['results']
+    return sites
+
+def get_devices(swis):
+    devices_query = "SELECT NodeID, DisplayName, MachineType, Vendor FROM Orion.Nodes"
+    devices = swis.query(devices_query)['results']
+    return devices
+
+def write_devices_to_site_files(swis, sites, devices):
+    for site in sites:
+        site_name = site
+        filename = f"{site_name}.swlst"
+        with open(filename, "w") as file:
+            file.write(f"Site: {site_name}\n\n")
+            for device in devices:
+                if device['NodeID'] in site.get('NodeIDs', []):
+                    file.write("Device Hostname: {}\n".format(device.get("DisplayName", "")))
+                    file.write("Device Model: {}\n".format(device.get("Vendor", "")))
+                    file.write("Device Manufacturer Name: {}\n\n".format(device.get("Model", "")))
+        print(f"Device data for {site_name} written to {filename} successfully.")
+
+def main():
+    npm_server = 'sw.local'
+    username = 'username'
+    password = getpass("Enter your SolarWinds password: ")
+
+    swis = SwisClient(npm_server, username, password, verify=False, port=17778)
+
+    # Get sites and devices
+    sites = get_sites(swis)
+    devices = get_devices(swis)
+
+    # Write devices to site files
+    write_devices_to_site_files(swis, sites, devices)
+
+    print("Device data organized and written to files successfully.")
+
+if __name__ == "__main__":
+    main()
